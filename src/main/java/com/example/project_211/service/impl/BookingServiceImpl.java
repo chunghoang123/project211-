@@ -30,6 +30,7 @@ public class BookingServiceImpl implements BookingService {
     private final CourtRepository courtRepository;
     private final TimeSlotRepository timeSlotRepository;
 
+    // Dat san cho mot hoac nhieu khung gio cung luc
     @Override
     @Transactional
     public List<BookingResponse> createBooking(String username, BookingRequest request) {
@@ -41,16 +42,19 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Không tìm thấy sân có mã: " + request.getCourtId()));
 
+        // Loai bo cac khung gio bi trung trong danh sach gui len
         List<Long> uniqueSlotIds = new LinkedHashSet<>(request.getTimeSlotIds())
                 .stream()
                 .toList();
 
+        // Lay thong tin cac khung gio, thieu mot khung gio nao thi bao loi
         List<TimeSlot> slots = uniqueSlotIds.stream()
                 .map(slotId -> timeSlotRepository.findById(slotId)
                         .orElseThrow(() -> new ResourceNotFoundException(
                                 "Không tìm thấy khung giờ có mã: " + slotId)))
                 .collect(Collectors.toList());
 
+        // Buoc 1: kiem tra tat ca khung gio truoc, chua ghi gi vao co so du lieu
         for (TimeSlot slot : slots) {
             boolean conflicted = bookingRepository
                     .existsByCourtIdAndTimeSlotIdAndBookingDateAndStatusIn(
@@ -63,7 +67,7 @@ public class BookingServiceImpl implements BookingService {
             }
         }
 
-        // VONG 2: tat ca deu trong -> ghi N dong booking
+        // Buoc 2: tat ca khung gio deu trong thi moi ghi cac dong dat san
         List<Booking> bookings = slots.stream()
                 .map(slot -> Booking.builder()
                         .user(user)
@@ -79,6 +83,7 @@ public class BookingServiceImpl implements BookingService {
                 .collect(Collectors.toList());
     }
 
+    // Xem lich su dat san cua chinh nguoi dung dang dang nhap
     @Override
     @Transactional(readOnly = true)
     public PageResponse<BookingResponse> getMyBookings(
@@ -103,41 +108,7 @@ public class BookingServiceImpl implements BookingService {
                 .build();
     }
 
-    private BookingResponse toResponse(Booking b) {
-        return BookingResponse.builder()
-                .id(b.getId())
-                .customerUsername(b.getUser().getUsername())
-                .courtId(b.getCourt().getId())
-                .courtName(b.getCourt().getName())
-                .bookingDate(b.getBookingDate())
-                .startTime(b.getTimeSlot().getStartTime())
-                .endTime(b.getTimeSlot().getEndTime())
-                .status(b.getStatus().name())
-                .createdAt(b.getCreatedAt())
-                .build();
-    }
-    // ===== FR-07: Xem lich su dat san =====
-    private PageResponse<BookingResponse> getMyBookingsLegacy(String username, int page, int size) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<Booking> bookingPage = bookingRepository.findByUserId(user.getId(), pageable);
-        // Stream API (UC-02): map Entity -> DTO
-        List<BookingResponse> content = bookingPage.getContent().stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
-
-        return PageResponse.<BookingResponse>builder()
-                .content(content)
-                .page(bookingPage.getNumber())
-                .size(bookingPage.getSize())
-                .totalElements(bookingPage.getTotalElements())
-                .totalPages(bookingPage.getTotalPages())
-                .build();
-    }
-
-    // ===== FR-08: Manager xem danh sach booking (loc status) =====
+    // Quan ly xem danh sach dat san, co the loc theo trang thai
     @Override
     @Transactional(readOnly = true)
     public PageResponse<BookingResponse> getBookings(String status, int page, int size) {
@@ -164,37 +135,53 @@ public class BookingServiceImpl implements BookingService {
                 .build();
     }
 
-    // ===== FR-08: Phe duyet / Tu choi =====
+    // Phe duyet hoac tu choi mot dat san
     @Override
     @Transactional
     public BookingResponse updateStatus(Long bookingId, String status) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Booking not found with id: " + bookingId));
+                        "Không tìm thấy đơn đặt sân có mã: " + bookingId));
 
         BookingStatus newStatus = parseStatus(status);
 
-        // Chi cho phep CONFIRMED hoac REJECTED (theo State Diagram SRS)
+        // Chi cho phep chuyen sang da duyet hoac tu choi
         if (newStatus != BookingStatus.CONFIRMED && newStatus != BookingStatus.REJECTED) {
             throw new IllegalArgumentException(
-                    "Status must be CONFIRMED or REJECTED");           // -> 400
+                    "Trạng thái chỉ được là CONFIRMED hoặc REJECTED");
         }
 
-        // Chi booking dang PENDING moi duoc duyet/tu choi
+        // Chi don dang cho duyet moi duoc phe duyet hoac tu choi
         if (booking.getStatus() != BookingStatus.PENDING) {
             throw new BookingConflictException(
-                    "Only PENDING bookings can be approved or rejected");  // -> 409
+                    "Chỉ có thể duyệt hoặc từ chối đơn đang ở trạng thái chờ duyệt");
         }
 
         booking.setStatus(newStatus);
         return toResponse(bookingRepository.save(booking));
     }
 
+    // Chuyen chuoi trang thai thanh enum, sai thi bao loi
     private BookingStatus parseStatus(String status) {
         try {
             return BookingStatus.valueOf(status.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid status: " + status);   // -> 400
+            throw new IllegalArgumentException("Trạng thái không hợp lệ: " + status);
         }
+    }
+
+    // Chuyen Entity sang DTO tra ve
+    private BookingResponse toResponse(Booking b) {
+        return BookingResponse.builder()
+                .id(b.getId())
+                .customerUsername(b.getUser().getUsername())
+                .courtId(b.getCourt().getId())
+                .courtName(b.getCourt().getName())
+                .bookingDate(b.getBookingDate())
+                .startTime(b.getTimeSlot().getStartTime())
+                .endTime(b.getTimeSlot().getEndTime())
+                .status(b.getStatus().name())
+                .createdAt(b.getCreatedAt())
+                .build();
     }
 }

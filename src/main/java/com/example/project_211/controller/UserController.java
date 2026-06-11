@@ -10,42 +10,43 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+// Quan ly nguoi dung, chi vai tro ADMIN duoc truy cap
 @RestController
-@RequestMapping("/api/v1/admin/users")    // Prefix /admin -> Ngay 2 chi ADMIN duoc vao
+@RequestMapping("/api/v1/admin/users")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
 
-    // GET /api/v1/admin/users?keyword=abc&page=0&size=5
+    // Lay danh sach nguoi dung, co tim kiem va phan trang
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<UserResponse>>> getUsers(
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(
-                ApiResponse.success("Fetched users successfully",
+                ApiResponse.success("Lấy danh sách người dùng thành công",
                         userService.getUsers(keyword, page, size)));
     }
 
-    // GET /api/v1/admin/users/5
+    // Lay thong tin mot nguoi dung theo ma
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable Long id) {
         return ResponseEntity.ok(
-                ApiResponse.success("Fetched user successfully",
+                ApiResponse.success("Lấy thông tin người dùng thành công",
                         userService.getUserById(id)));
     }
 
-    // PUT /api/v1/admin/users/5 -> 200 OK (SRS: PUT cap nhat tra 200)
+    // Cap nhat thong tin nguoi dung
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResponse>> updateUser(
             @PathVariable Long id, @Valid @RequestBody UserRequest request) {
         return ResponseEntity.ok(
-                ApiResponse.success("Updated user successfully",
+                ApiResponse.success("Cập nhật người dùng thành công",
                         userService.updateUser(id, request)));
     }
 
-    // DELETE /api/v1/admin/users/5 -> 204 No Content (SRS: xoa khong tra body)
+    // Xoa nguoi dung, tra ve 204 khong co noi dung
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);

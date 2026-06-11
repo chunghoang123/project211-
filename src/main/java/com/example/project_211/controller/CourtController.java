@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+// Xem danh sach san va khung gio, ai cung truy cap duoc
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
@@ -17,17 +18,17 @@ public class CourtController {
 
     private final CourtService courtService;
 
-    // GET /api/v1/courts - dung vi du chuan trong SRS muc VI.1
+    // Lay danh sach san
     @GetMapping("/courts")
     public ResponseEntity<ApiResponse<List<CourtResponse>>> getCourts() {
         return ResponseEntity.ok(ApiResponse.success(
-                "Fetched courts successfully", courtService.getAllCourts()));
+                "Lấy danh sách sân thành công", courtService.getAllCourts()));
     }
 
-    // GET /api/v1/time-slots
+    // Lay danh sach khung gio
     @GetMapping("/time-slots")
     public ResponseEntity<ApiResponse<List<TimeSlotResponse>>> getTimeSlots() {
         return ResponseEntity.ok(ApiResponse.success(
-                "Fetched time slots successfully", courtService.getAllTimeSlots()));
+                "Lấy danh sách khung giờ thành công", courtService.getAllTimeSlots()));
     }
 }

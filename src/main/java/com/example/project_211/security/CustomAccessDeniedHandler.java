@@ -27,8 +27,8 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         ErrorResponse body = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(403)
-                .error("Forbidden")
-                .message("You do not have permission to access this resource")
+                .error("Không có quyền truy cập")
+                .message("Bạn không có quyền truy cập tài nguyên này")
                 .path(request.getRequestURI())
                 .build();
         objectMapper.writeValue(response.getWriter(), body);

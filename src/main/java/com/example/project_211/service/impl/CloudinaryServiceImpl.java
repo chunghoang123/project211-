@@ -17,33 +17,35 @@ public class CloudinaryServiceImpl implements FileStorageService {
 
     private final Cloudinary cloudinary;
 
-    private static final long MAX_SIZE = 5 * 1024 * 1024;   // UC-05: duoi 5MB
+    // Gioi han dung luong anh toi da 5MB
+    private static final long MAX_SIZE = 5 * 1024 * 1024;
 
     @Override
     public String upload(MultipartFile file) {
-        // Validate dinh dang + dung luong (UC-05) -> sai thi 400
+        // Kiem tra dinh dang anh chi cho phep PNG hoac JPG
         String contentType = file.getContentType();
         if (contentType == null ||
                 (!contentType.equals("image/png") && !contentType.equals("image/jpeg"))) {
-            throw new IllegalArgumentException("Only PNG/JPG images are allowed");
+            throw new IllegalArgumentException("Chỉ chấp nhận ảnh định dạng PNG hoặc JPG");
         }
+        // Kiem tra dung luong anh
         if (file.getSize() > MAX_SIZE) {
-            throw new IllegalArgumentException("Image must be under 5MB");
+            throw new IllegalArgumentException("Ảnh phải có dung lượng dưới 5MB");
         }
 
         try {
-            // UC-05 buoc 3-4: SDK truyen file len cloud qua HTTPS
+            // Tai anh len Cloudinary qua HTTPS
             Map<?, ?> result = cloudinary.uploader().upload(
                     file.getBytes(),
                     ObjectUtils.asMap("folder", "badminton_courts"));
 
-            // UC-05 buoc 5: cloud tra ve secure URL
+            // Cloudinary tra ve duong dan anh an toan
             return (String) result.get("secure_url");
 
         } catch (IOException e) {
-            // UC-05 luong ngoai le: mat ket noi / sai secret key -> 503
+            // Mat ket noi hoac sai khoa bi mat thi tra loi 503
             throw new CloudStorageException(
-                    "Cloud storage service is temporarily unavailable. Please try again later.");
+                    "Dịch vụ lưu trữ ảnh tạm thời không khả dụng, vui lòng thử lại sau");
         }
     }
 }

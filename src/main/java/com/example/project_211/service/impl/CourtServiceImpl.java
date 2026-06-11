@@ -1,4 +1,6 @@
 package com.example.project_211.service.impl;
+import com.example.project_211.service.FileStorageService;
+import com.example.project_211.service.CourtService;
 
 import com.example.project_211.dto.response.CourtResponse;
 import com.example.project_211.dto.response.TimeSlotResponse;
@@ -8,8 +10,6 @@ import com.example.project_211.exception.ResourceNotFoundException;
 import com.example.project_211.repository.CourtImageRepository;
 import com.example.project_211.repository.CourtRepository;
 import com.example.project_211.repository.TimeSlotRepository;
-import com.example.project_211.service.CourtService;
-import com.example.project_211.service.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,7 +64,7 @@ public class CourtServiceImpl implements CourtService {
     public List<String> uploadCourtImages(Long courtId, MultipartFile[] files) {
         Court court = courtRepository.findById(courtId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Court not found with id: " + courtId));
+                        "Không tìm thấy sân có mã: " + courtId));
 
         // Stream API: upload tung file -> URL -> CourtImage entity
         List<CourtImage> images = Arrays.stream(files)

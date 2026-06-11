@@ -9,20 +9,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+// Nguoi dung da dang nhap doi mat khau cua chinh minh
 @RestController
-@RequestMapping("/api/v1/users/me")        // matcher .authenticated() trong SecurityConfig
+@RequestMapping("/api/v1/users/me")
 @RequiredArgsConstructor
 public class UserProfileController {
 
     private final AuthService authService;
 
-    // FR-10: PUT /api/v1/users/me/password
+    // Doi mat khau
     @PutMapping("/password")
     public ResponseEntity<ApiResponse<Object>> changePassword(
             Authentication authentication,
             @Valid @RequestBody ChangePasswordRequest request) {
         authService.changePassword(authentication.getName(), request);
         return ResponseEntity.ok(ApiResponse.success(
-                "Password changed successfully", null));
+                "Đổi mật khẩu thành công", null));
     }
 }

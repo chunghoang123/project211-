@@ -10,29 +10,30 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+// Quan ly duyet va tu choi don dat san, danh cho MANAGER va ADMIN
 @RestController
-@RequestMapping("/api/v1/manager/bookings")   // MANAGER + ADMIN (theo FR-08)
+@RequestMapping("/api/v1/manager/bookings")
 @RequiredArgsConstructor
 public class ManagerBookingController {
 
     private final BookingService bookingService;
 
-    // GET /api/v1/manager/bookings?status=PENDING&page=0&size=10
+    // Xem danh sach dat san, co the loc theo trang thai
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<BookingResponse>>> getBookings(
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(ApiResponse.success("Fetched bookings successfully",
+        return ResponseEntity.ok(ApiResponse.success("Lấy danh sách đặt sân thành công",
                 bookingService.getBookings(status, page, size)));
     }
 
-    // FR-08: PUT /api/v1/manager/bookings/5/status  body: {"status":"CONFIRMED"}
+    // Phe duyet hoac tu choi mot don dat san
     @PutMapping("/{id}/status")
     public ResponseEntity<ApiResponse<BookingResponse>> updateStatus(
             @PathVariable Long id,
             @Valid @RequestBody BookingStatusRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Booking status updated successfully",
+        return ResponseEntity.ok(ApiResponse.success("Cập nhật trạng thái đặt sân thành công",
                 bookingService.updateStatus(id, request.getStatus())));
     }
 }

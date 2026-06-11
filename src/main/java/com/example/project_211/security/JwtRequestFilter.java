@@ -50,7 +50,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         // 3. ⭐ UC-03: token nam trong Blacklist -> CHAN NGAY, tra 403
         //    (ke ca token chua het han ve mat thoi gian)
         if (tokenBlacklistService.isBlacklisted(token)) {
-            writeError(response, request, "Token has been revoked");
+            writeError(response, request, "Token đã bị thu hồi");
             return;
         }
 
@@ -76,7 +76,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         ErrorResponse body = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(403)
-                .error("Forbidden")
+                .error("Không có quyền truy cập")
                 .message(message)
                 .path(request.getRequestURI())
                 .build();

@@ -27,8 +27,8 @@ public class JwtAuthEntryPoint implements AuthenticationEntryPoint {
         ErrorResponse body = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(401)
-                .error("Unauthorized")
-                .message("Missing or invalid access token")
+                .error("Chưa xác thực")
+                .message("Thiếu hoặc sai access token")
                 .path(request.getRequestURI())
                 .build();
         objectMapper.writeValue(response.getWriter(), body);

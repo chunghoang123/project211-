@@ -29,10 +29,9 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor   // Lombok tu sinh constructor -> Spring tu inject (DI chuan)
+@RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-    // ===== THEM CAC FIELD MOI (inject qua constructor Lombok) =====
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final RefreshTokenRepository refreshTokenRepository;
@@ -41,23 +40,29 @@ public class AuthServiceImpl implements AuthService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
+    // Thoi gian song cua refresh token (mili giay)
     @Value("${jwt.refresh-expiration}")
-    private long refreshExpiration;          // 604800000ms = 7 ngay
+    private long refreshExpiration;
 
-    // đăng ký tài khoản
+    // Dang ky tai khoan moi
     @Override
     @Transactional
     public UserResponse register(RegisterRequest request) {
+        // Kiem tra trung ten dang nhap
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new DuplicateResourceException("Username already exists");
+            throw new DuplicateResourceException("Tên đăng nhập đã tồn tại");
         }
+        // Kiem tra trung email
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new DuplicateResourceException("Email already exists");
+            throw new DuplicateResourceException("Email đã tồn tại");
         }
 
+        // Tai khoan dang ky mac dinh la khach hang
         Role customerRole = roleRepository.findByName(RoleName.ROLE_CUSTOMER)
-                .orElseThrow(() -> new ResourceNotFoundException("Customer role not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Không tìm thấy vai trò khách hàng"));
 
+        // Ma hoa mat khau truoc khi luu
         User user = User.builder()
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
@@ -70,6 +75,7 @@ public class AuthServiceImpl implements AuthService {
         return toUserResponse(userRepository.save(user));
     }
 
+    // Chuyen Entity sang DTO tra ve
     private UserResponse toUserResponse(User user) {
         return UserResponse.builder()
                 .id(user.getId())
@@ -83,25 +89,23 @@ public class AuthServiceImpl implements AuthService {
                 .build();
     }
 
-    // ===== FR-01: LOGIN (UC-01) =====
+    // Dang nhap, cap access token va refresh token
     @Override
     @Transactional
     public AuthResponse login(LoginRequest request) {
-        // 1+2+3. Spring Security chan dau vao, goi loadUserByUsername(),
-        //        dung PasswordEncoder so sanh BCrypt.
-        //        Sai -> nem AuthenticationException -> handler tra 401 (UC-01 luong ngoai le)
+        // Spring Security kiem tra ten dang nhap va mat khau, sai se nem loi 401
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUsername(), request.getPassword()));
 
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Không tìm thấy người dùng"));
 
-        // 4. Tao AccessToken (JWT) + RefreshToken (UUID luu DB)
+        // Tao access token va refresh token
         String accessToken = jwtUtil.generateAccessToken(user);
         String refreshToken = createOrRotateRefreshToken(user);
 
-        // 5. Tra cap token
         return AuthResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
@@ -109,7 +113,7 @@ public class AuthServiceImpl implements AuthService {
                 .build();
     }
 
-    /** Moi user chi giu 1 refresh token: co roi thi XOAY (thay chuoi + gia han). */
+    // Moi nguoi dung chi giu mot refresh token, co roi thi thay chuoi moi va gia han
     private String createOrRotateRefreshToken(User user) {
         RefreshToken rt = refreshTokenRepository.findByUserId(user.getId())
                 .orElse(RefreshToken.builder().user(user).build());
@@ -119,22 +123,24 @@ public class AuthServiceImpl implements AuthService {
         return rt.getToken();
     }
 
-    // ===== FR-02: REFRESH TOKEN =====
+    // Xoay vong token, dung refresh token de lay cap token moi
     @Override
     @Transactional
     public AuthResponse refreshToken(RefreshTokenRequest request) {
         RefreshToken rt = refreshTokenRepository.findByToken(request.getRefreshToken())
-                .orElseThrow(() -> new InvalidTokenException("Invalid refresh token"));
+                .orElseThrow(() -> new InvalidTokenException(
+                        "Refresh token không hợp lệ"));
 
-        // Refresh token het han -> xoa luon, bat dang nhap lai
+        // Refresh token het han thi xoa va bat dang nhap lai
         if (rt.getExpiryDate().isBefore(Instant.now())) {
             refreshTokenRepository.delete(rt);
-            throw new InvalidTokenException("Refresh token expired. Please login again");
+            throw new InvalidTokenException(
+                    "Refresh token đã hết hạn, vui lòng đăng nhập lại");
         }
 
         User user = rt.getUser();
         String newAccessToken = jwtUtil.generateAccessToken(user);
-        String newRefreshToken = createOrRotateRefreshToken(user);   // FR-02: "xoay vong"
+        String newRefreshToken = createOrRotateRefreshToken(user);
 
         return AuthResponse.builder()
                 .accessToken(newAccessToken)
@@ -143,59 +149,60 @@ public class AuthServiceImpl implements AuthService {
                 .build();
     }
 
-    // ===== FR-03: LOGOUT (UC-03) =====
+    // Dang xuat, thu hoi access token va refresh token
     @Override
     @Transactional
     public void logout(HttpServletRequest request) {
-        // 1. Trich AccessToken tu Header (UC-03 buoc 2)
+        // Lay access token tu header
         String header = request.getHeader("Authorization");
-        String token = header.substring(7);   // filter da dam bao co "Bearer "
+        String token = header.substring(7);
 
-        // 2. Tinh thoi gian song con lai cua token
+        // Tinh thoi gian song con lai cua token
         long remaining = jwtUtil.getRemainingTime(token);
 
-        // 3. Nem vao Blacklist voi TTL = thoi gian con lai (UC-03 buoc 3)
+        // Dua token vao danh sach den voi thoi gian het han bang thoi gian con lai
         if (remaining > 0) {
             tokenBlacklistService.blacklist(token, remaining);
         }
 
-        // 4. Thu hoi luon RefreshToken de khong refresh duoc nua
+        // Xoa luon refresh token de khong xoay vong duoc nua
         String username = jwtUtil.extractUsername(token);
         userRepository.findByUsername(username).ifPresent(user ->
                 refreshTokenRepository.findByUserId(user.getId())
                         .ifPresent(refreshTokenRepository::delete));
     }
-    // ===== FR-10: Doi mat khau (Authenticated) =====
+
+    // Doi mat khau khi da dang nhap
     @Override
     @Transactional
     public void changePassword(String username, ChangePasswordRequest request) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Không tìm thấy người dùng"));
 
-        // Kiem tra mat khau cu bang BCrypt matches()
+        // So sanh mat khau cu bang BCrypt
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("Old password is incorrect");   // -> 400
+            throw new IllegalArgumentException("Mật khẩu cũ không chính xác");
         }
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
     }
 
-    // ===== FR-10: Quen mat khau (Public) =====
+    // Quen mat khau, sinh mat khau tam thoi
     @Override
     @Transactional
     public String forgotPassword(ForgotPasswordRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "No account found with this email"));
+                        "Không tìm thấy tài khoản với email này"));
 
-        // Sinh mat khau tam 8 ky tu ngau nhien
+        // Sinh mat khau tam thoi 8 ky tu
         String tempPassword = UUID.randomUUID().toString().substring(0, 8);
         user.setPassword(passwordEncoder.encode(tempPassword));
         userRepository.save(user);
 
-        // Demo do an: tra thang mat khau tam ve response.
-        // (San pham that se gui qua email - co the noi voi giang vien y nay)
+        // Voi do an thi tra mat khau tam ve response, san pham that se gui qua email
         return tempPassword;
     }
 }

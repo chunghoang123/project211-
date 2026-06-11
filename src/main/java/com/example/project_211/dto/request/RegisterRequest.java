@@ -8,7 +8,7 @@ import lombok.Setter;
 public class RegisterRequest {
 
     @NotBlank(message = "Tên đăng nhập không được để trống")
-    @Size(min = 4, max = 50, message = "Tên đăng nhập phải có từ 4 đến 50 ký tự")
+    @Size(min = 4, max = 50, message = "Tên đăng nhập phải từ 4 đến 50 ký tự")
     private String username;
 
     @NotBlank(message = "Mật khẩu không được để trống")
@@ -16,7 +16,7 @@ public class RegisterRequest {
     private String password;
 
     @NotBlank(message = "Email không được để trống")
-    @Email(message = "Email không đúng định dạng")     // -> 400 dung message mau SRS
+    @Email(message = "Email không đúng định dạng")
     private String email;
 
     private String fullName;
