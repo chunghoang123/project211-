@@ -47,7 +47,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             return;
         }
 
-        // 3. ⭐ UC-03: token nam trong Blacklist -> CHAN NGAY, tra 403
+        // 3. UC-03: token nam trong Blacklist -> CHAN NGAY, tra 403
         //    (ke ca token chua het han ve mat thoi gian)
         if (tokenBlacklistService.isBlacklisted(token)) {
             writeError(response, request, "Token đã bị thu hồi");

@@ -7,7 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 public interface CourtService {
-    List<CourtResponse> getAllCourts();                          // Public
-    List<TimeSlotResponse> getAllTimeSlots();                    // Public
-    List<String> uploadCourtImages(Long courtId, MultipartFile[] files);  // FR-09
+    List<CourtResponse> getAllCourts();
+    List<TimeSlotResponse> getAllTimeSlots();
+    List<String> uploadCourtImages(Long courtId, MultipartFile[] files);
 }

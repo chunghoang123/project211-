@@ -180,7 +180,7 @@ spring.data.redis.port=6379
 ```java
 package com.example.project_211.service.impl;
 
-import com.example.project_211.service.TokenBlacklistService;
+import com.example.project_211.service.impl.TokenBlacklistService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -515,7 +515,7 @@ package com.example.project_211.controller;
 
 import com.example.project_211.dto.request.RegisterRequest;
 import com.example.project_211.dto.response.UserResponse;
-import com.example.project_211.service.AuthService;
+import com.example.project_211.service.impl.AuthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -588,7 +588,7 @@ package com.example.project_211.controller;
 import com.example.project_211.dto.request.BookingRequest;
 import com.example.project_211.dto.response.BookingResponse;
 import com.example.project_211.exception.BookingConflictException;
-import com.example.project_211.service.BookingService;
+import com.example.project_211.service.impl.BookingService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -667,7 +667,7 @@ class BookingControllerTest {
 ```java
 package com.example.project_211.controller;
 
-import com.example.project_211.service.UserService;
+import com.example.project_211.service.impl.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

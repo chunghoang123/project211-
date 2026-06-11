@@ -211,7 +211,7 @@ public interface TokenBlacklistService {
 ```java
 package com.example.project_211.service.impl;
 
-import com.example.project_211.service.TokenBlacklistService;
+import com.example.project_211.service.impl.TokenBlacklistService;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -259,7 +259,7 @@ public class InMemoryTokenBlacklistService implements TokenBlacklistService {
 package com.example.project_211.security;
 
 import com.example.project_211.dto.response.ErrorResponse;
-import com.example.project_211.service.TokenBlacklistService;
+import com.example.project_211.service.impl.TokenBlacklistService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -442,7 +442,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 package com.example.project_211.config;
 
 import com.example.project_211.security.*;
-import com.example.project_211.service.TokenBlacklistService;
+import com.example.project_211.service.impl.TokenBlacklistService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -932,7 +932,7 @@ import com.example.project_211.dto.request.BookingStatusRequest;
 import com.example.project_211.dto.response.ApiResponse;
 import com.example.project_211.dto.response.BookingResponse;
 import com.example.project_211.dto.response.PageResponse;
-import com.example.project_211.service.BookingService;
+import com.example.project_211.service.impl.BookingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -1068,7 +1068,7 @@ package com.example.project_211.service.impl;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.example.project_211.exception.CloudStorageException;
-import com.example.project_211.service.FileStorageService;
+import com.example.project_211.service.impl.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -1180,8 +1180,8 @@ import com.example.project_211.exception.ResourceNotFoundException;
 import com.example.project_211.repository.CourtImageRepository;
 import com.example.project_211.repository.CourtRepository;
 import com.example.project_211.repository.TimeSlotRepository;
-import com.example.project_211.service.CourtService;
-import com.example.project_211.service.FileStorageService;
+import com.example.project_211.service.impl.CourtService;
+import com.example.project_211.service.impl.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -1269,7 +1269,7 @@ package com.example.project_211.controller;
 import com.example.project_211.dto.response.ApiResponse;
 import com.example.project_211.dto.response.CourtResponse;
 import com.example.project_211.dto.response.TimeSlotResponse;
-import com.example.project_211.service.CourtService;
+import com.example.project_211.service.impl.CourtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -1304,7 +1304,7 @@ public class CourtController {
 package com.example.project_211.controller;
 
 import com.example.project_211.dto.response.ApiResponse;
-import com.example.project_211.service.CourtService;
+import com.example.project_211.service.impl.CourtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -1436,7 +1436,7 @@ package com.example.project_211.controller;
 
 import com.example.project_211.dto.request.ChangePasswordRequest;
 import com.example.project_211.dto.response.ApiResponse;
-import com.example.project_211.service.AuthService;
+import com.example.project_211.service.impl.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

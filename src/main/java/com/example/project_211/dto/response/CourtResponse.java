@@ -12,5 +12,5 @@ public class CourtResponse {
     private String description;
     private BigDecimal pricePerHour;
     private boolean active;
-    private List<String> images;     // danh sach URL anh (FR-09)
+    private List<String> images;
 }

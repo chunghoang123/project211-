@@ -7,13 +7,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 
-/**
- * FR-13: TokenBlacklist tren Redis - giai quyet tac nghen co chai.
- *
- * Cau truc luu: key = "blacklist:<token>", value = "revoked",
- * TTL = thoi gian song con lai cua token.
- * -> Het TTL, Redis TU XOA key, blacklist khong bao gio phinh to.
- */
 @Service
 @RequiredArgsConstructor
 public class RedisTokenBlacklistService implements TokenBlacklistService {
