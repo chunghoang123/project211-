@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter @Setter
-public class RefreshTokenRequest {
-    @NotBlank(message = "refreshToken is required")
-    private String refreshToken;
+public class BookingStatusRequest {
+    @NotBlank(message = "status is required")
+    private String status;        // "CONFIRMED" hoac "REJECTED"
 }

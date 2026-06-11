@@ -28,11 +28,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
 
-    /**
-     * FR-05 + UC-02: Tim kiem + phan trang.
-     * UC-02 BAT BUOC dung Stream API (.stream().filter().map().collect())
-     * thay vi vong lap for/while - giam khao se soi ky cho nay.
-     */
+
     @Override
     @Transactional(readOnly = true)
     public PageResponse<UserResponse> getUsers(String keyword, int page, int size) {
@@ -43,7 +39,6 @@ public class UserServiceImpl implements UserService {
                 : userRepository.findByUsernameContainingIgnoreCaseOrEmailContainingIgnoreCase(
                 keyword, keyword, pageable);
 
-        // ⭐ Java Stream API: filter user active truoc, map Entity -> DTO, collect List
         List<UserResponse> content = userPage.getContent().stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());

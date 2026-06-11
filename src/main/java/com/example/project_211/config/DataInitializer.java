@@ -25,7 +25,6 @@ public class DataInitializer {
     @Bean
     CommandLineRunner initData() {
         return args -> {
-            // 1. Seed 3 role
             for (RoleName rn : RoleName.values()) {
                 roleRepository.findByName(rn).orElseGet(() ->
                         roleRepository.save(Role.builder().name(rn).build()));
@@ -43,7 +42,7 @@ public class DataInitializer {
                         .build());
             }
 
-            // 3. Seed 2 san mau
+            // 3.sân mẫu
             if (courtRepository.count() == 0) {
                 courtRepository.save(Court.builder()
                         .name("San so 1").description("San tieu chuan thi dau")

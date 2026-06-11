@@ -1,1 +1,0 @@
--- Seed data will be added when the entity and database schema are implemented.

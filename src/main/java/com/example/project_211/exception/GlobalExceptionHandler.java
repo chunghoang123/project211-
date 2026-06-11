@@ -74,4 +74,38 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.INTERNAL_SERVER_ERROR,
                 "Đã xảy ra lỗi trong hệ thống", req);
     }
+    // 401 - sai username/password (UC-01: "khong tra thong tin chi tiet de bao mat")
+    @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthFail(
+            org.springframework.security.core.AuthenticationException ex,
+            HttpServletRequest req) {
+        return build(HttpStatus.UNAUTHORIZED, "Invalid username or password", req);
+    }
+
+    // 401 - refresh token sai / het han
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidToken(
+            InvalidTokenException ex, HttpServletRequest req) {
+        return build(HttpStatus.UNAUTHORIZED, ex.getMessage(), req);
+    }
+    // 400 - tham so khong hop le (status sai, v.v.)
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(
+            IllegalArgumentException ex, HttpServletRequest req) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), req);
+    }
+    // 503 - dich vu cloud loi (UC-05) - message dung NGUYEN VAN SRS
+    @ExceptionHandler(CloudStorageException.class)
+    public ResponseEntity<ErrorResponse> handleCloudError(
+            CloudStorageException ex, HttpServletRequest req) {
+        return build(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), req);
+    }
+
+    // 400 - file vuot 10MB (gioi han trong application.properties)
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleMaxSize(
+            org.springframework.web.multipart.MaxUploadSizeExceededException ex,
+            HttpServletRequest req) {
+        return build(HttpStatus.BAD_REQUEST, "File size exceeds the limit", req);
+    }
 }

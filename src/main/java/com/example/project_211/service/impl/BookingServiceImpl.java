@@ -31,7 +31,7 @@ public class BookingServiceImpl implements BookingService {
     private final TimeSlotRepository timeSlotRepository;
 
     @Override
-    @Transactional   // ⭐ all-or-nothing: 1 slot fail -> rollback het, khong ghi gi
+    @Transactional
     public List<BookingResponse> createBooking(String username, BookingRequest request) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -115,5 +115,86 @@ public class BookingServiceImpl implements BookingService {
                 .status(b.getStatus().name())
                 .createdAt(b.getCreatedAt())
                 .build();
+    }
+    // ===== FR-07: Xem lich su dat san =====
+    private PageResponse<BookingResponse> getMyBookingsLegacy(String username, int page, int size) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<Booking> bookingPage = bookingRepository.findByUserId(user.getId(), pageable);
+        // Stream API (UC-02): map Entity -> DTO
+        List<BookingResponse> content = bookingPage.getContent().stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+
+        return PageResponse.<BookingResponse>builder()
+                .content(content)
+                .page(bookingPage.getNumber())
+                .size(bookingPage.getSize())
+                .totalElements(bookingPage.getTotalElements())
+                .totalPages(bookingPage.getTotalPages())
+                .build();
+    }
+
+    // ===== FR-08: Manager xem danh sach booking (loc status) =====
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<BookingResponse> getBookings(String status, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+        Page<Booking> bookingPage;
+        if (status == null || status.isBlank()) {
+            bookingPage = bookingRepository.findAll(pageable);
+        } else {
+            BookingStatus bs = parseStatus(status);
+            bookingPage = bookingRepository.findByStatus(bs, pageable);
+        }
+
+        List<BookingResponse> content = bookingPage.getContent().stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+
+        return PageResponse.<BookingResponse>builder()
+                .content(content)
+                .page(bookingPage.getNumber())
+                .size(bookingPage.getSize())
+                .totalElements(bookingPage.getTotalElements())
+                .totalPages(bookingPage.getTotalPages())
+                .build();
+    }
+
+    // ===== FR-08: Phe duyet / Tu choi =====
+    @Override
+    @Transactional
+    public BookingResponse updateStatus(Long bookingId, String status) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Booking not found with id: " + bookingId));
+
+        BookingStatus newStatus = parseStatus(status);
+
+        // Chi cho phep CONFIRMED hoac REJECTED (theo State Diagram SRS)
+        if (newStatus != BookingStatus.CONFIRMED && newStatus != BookingStatus.REJECTED) {
+            throw new IllegalArgumentException(
+                    "Status must be CONFIRMED or REJECTED");           // -> 400
+        }
+
+        // Chi booking dang PENDING moi duoc duyet/tu choi
+        if (booking.getStatus() != BookingStatus.PENDING) {
+            throw new BookingConflictException(
+                    "Only PENDING bookings can be approved or rejected");  // -> 409
+        }
+
+        booking.setStatus(newStatus);
+        return toResponse(bookingRepository.save(booking));
+    }
+
+    private BookingStatus parseStatus(String status) {
+        try {
+            return BookingStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid status: " + status);   // -> 400
+        }
     }
 }
