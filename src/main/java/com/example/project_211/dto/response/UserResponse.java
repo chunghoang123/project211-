@@ -1,6 +1,5 @@
 package com.example.project_211.dto.response;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 import java.time.LocalDateTime;

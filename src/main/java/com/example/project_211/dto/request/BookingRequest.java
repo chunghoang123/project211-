@@ -16,7 +16,7 @@ public class BookingRequest {
 
     @NotNull(message = "Ngày đặt sân không được để trống")
     @FutureOrPresent(message = "Ngày đặt sân phải là hôm nay hoặc một ngày trong tương lai")
-    private LocalDate bookingDate;          // JSON gui: "2026-06-15"
+    private LocalDate bookingDate;
 
     @NotEmpty(message = "Danh sách khung giờ không được để trống")
     private List<Long> timeSlotIds;

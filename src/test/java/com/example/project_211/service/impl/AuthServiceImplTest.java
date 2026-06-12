@@ -86,7 +86,7 @@ class AuthServiceImplTest {
 
         assertThatThrownBy(() -> authService.register(request))
                 .isInstanceOf(DuplicateResourceException.class)
-                .hasMessage("Username already exists");
+                .hasMessage("Tên đăng nhập đã tồn tại");
 
         // Quan trong: KHONG duoc luu gi xuong DB
         verify(userRepository, never()).save(any());

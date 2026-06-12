@@ -68,7 +68,16 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Không tìm thấy người dùng có mã: " + id));
 
-        Role role = roleRepository.findByName(RoleName.valueOf(request.getRole()))
+        // Chuyen chuoi vai tro thanh enum, sai thi bao loi tieng Viet
+        RoleName roleName;
+        try {
+            roleName = RoleName.valueOf(request.getRole());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(
+                    "Vai trò không hợp lệ: " + request.getRole());
+        }
+
+        Role role = roleRepository.findByName(roleName)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy vai trò"));
 
         user.setEmail(request.getEmail());

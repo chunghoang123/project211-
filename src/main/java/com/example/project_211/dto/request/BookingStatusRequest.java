@@ -6,6 +6,7 @@ import lombok.Setter;
 
 @Getter @Setter
 public class BookingStatusRequest {
-    @NotBlank(message = "status is required")
-    private String status;        // "CONFIRMED" hoac "REJECTED"
+    // Gia tri hop le la CONFIRMED hoac REJECTED
+    @NotBlank(message = "Trạng thái không được để trống")
+    private String status;
 }
